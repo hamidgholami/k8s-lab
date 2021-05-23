@@ -1,0 +1,15 @@
+mirrors:
+  docker.io:
+    endpoint:
+      - "http://172.29.0.69:8100"
+  quay.io:
+    endpoint:
+      - "http://172.29.0.69:8100"
+  k8s.gcr.io:
+    endpoint:
+      - "http://172.29.0.69:8100"
+configs:
+  172.29.0.69:8100:
+    tls:
+      insecure_skip_verify: true
+#mkdir -p /etc/rancher/k3s/

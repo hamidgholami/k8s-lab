@@ -1,0 +1,8 @@
+[Unit]
+Description= k3s service
+
+[Service]
+ExecStart=/usr/local/bin/k3s server --data-dir /appserver/rancher/k3s --advertise-address {{ hostvars['master'].ansible_host }}
+
+[Install]
+WantedBy=basic.target
