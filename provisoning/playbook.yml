@@ -45,24 +45,34 @@
     #   pause:
     #     minutes: 1
 
-    - name: Copy k3s binary file
-      changed_when: false
-      copy:
-        src: "k3s"
-        dest: "/usr/local/bin/"
-        mode: '0755'
+    #- name: Copy k3s binary file
+    #  changed_when: false
+    #  copy:
+    #    src: "k3s"
+    #    dest: "/usr/local/bin/"
+    #    mode: '0755'
 
-    - name: Disable Original Repos
-      ansible.builtin.shell: cd /etc/yum.repos.d/ && for i in * ; do mv $i $i.disabled ; done
-      args:
-        executable: /bin/bash
-        warn: false
-    
-    - name: Copy local repository
-      changed_when: false
-      copy:
-        src: "lanArtifactory.repo"
-        dest: /etc/yum.repos.d/
+    - name: Download k3s binary x64
+      get_url:
+        url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s
+        checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/sha256sum-amd64.txt
+        dest: /usr/local/bin/k3s
+        owner: root
+        group: root
+        mode: 0755
+      when: ansible_facts.architecture == "x86_64"
+
+    #- name: Disable Original Repos
+    #  ansible.builtin.shell: cd /etc/yum.repos.d/ && for i in * ; do mv $i $i.disabled ; done
+    #  args:
+    #    executable: /bin/bash
+    #    warn: false
+    #
+    #- name: Copy local repository
+    #  changed_when: false
+    #  copy:
+    #    src: "lanArtifactory.repo"
+    #    dest: /etc/yum.repos.d/
     
     - name: Create Directories /etc/rancher/k3s/ and /appserver/rancher/k3s
       changed_when: false
@@ -129,20 +139,20 @@
         daemon-reload: yes
       when: inventory_hostname != groups['kuberlab'][0]
 
-    - name: Add DNS SERVER
-      community.general.nmcli:
-        conn_name: "System eth1"
-        type: ethernet
-        dns4:
-        - 10.100.1.181
-        - 10.100.0.181
-        state: present
-      notify:
-      - restart network
+    #- name: Add DNS SERVER
+    #  community.general.nmcli:
+    #    conn_name: "System eth1"
+    #    type: ethernet
+    #    dns4:
+    #    - x.x.x.x
+    #    - x.x.x.x
+    #    state: present
+    #  notify:
+    #  - restart network
 
-    - name: "Wait for Cluster..."
-      wait_for_connection:
-        delay: 120
+    #- name: "Wait for Cluster..."
+    #  wait_for_connection:
+    #    delay: 120
   
     - name: Get your Kubernetes Cluster information
       ansible.builtin.shell: echo "kubectl get nodes" && /usr/local/bin/k3s kubectl get node && echo "kubectl get namespaces" && /usr/local/bin/k3s kubectl get ns
@@ -159,8 +169,8 @@
         #verbosity: 6
       when: inventory_hostname == groups['kuberlab'][0]
 
-  handlers:
-    - name: restart network
-      service:
-        name: NetworkManager
-        state: restarted
+  #handlers:
+  #  - name: restart network
+  #    service:
+  #      name: NetworkManager
+  #      state: restarted
