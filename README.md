@@ -3,7 +3,7 @@
 This is a 3-node-cluster Kubernetes that uses `k3s`.
 This project was prepared for *two type of vagrant prividers*:
 1. `virtualbox` : Checkout to `virtualbox` branch
-2. `libvirt` : Checkout to `libvirt` branch
+2. `libvirt` : Checkout to `main` branch
 
 
 ### Requirement
