@@ -14,8 +14,8 @@ Vagrant.configure("2") do |config|
 				v.storage :file, :size => '5G'
 				v.storage :file, :size => '5G'
 				v.storage :file, :size => '5G'
-				v.memory = 1024
-				v.cpus = 1
+				v.memory = 2500
+				v.cpus = 3
 				#v.storage_pool_name = 'pool_myhome_SSD'
 
 		    end
