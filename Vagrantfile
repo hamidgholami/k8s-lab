@@ -26,7 +26,7 @@ Vagrant.configure("2") do |config|
 		  machine.vm.provision :ansible do |ansible|
 			# Disable default limit to connect to all the machines
 			ansible.limit = "all"
-			ansible.playbook = "provisioning/playbook.yml"
+			ansible.playbook = "provisioning/site.yml"
 			#ansible.verbose = "-v"
 			ansible.inventory_path = "provisioning/inventory"
 
