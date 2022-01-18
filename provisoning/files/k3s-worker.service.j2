@@ -1,9 +1,0 @@
-#/etc/systemd/system/k3s-worker.service
-[Unit]
-Description= k3s service
-
-[Service]
-ExecStart=/usr/local/bin/k3s agent --data-dir /appserver/rancher/k3s --server https://{{ hostvars['master'].ansible_host }}:6443 --token {{ hostvars['master'].master_token.stdout }}
-
-[Install]
-WantedBy=basic.target
