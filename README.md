@@ -16,3 +16,8 @@ Run below command:
 ```bash
 vagrant up
 ```
+### Kubeconfig
+
+```
+scp vagrant@master_ip:~/.kube/config ~/.kube/config
+```
