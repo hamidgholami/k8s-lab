@@ -1,13 +1,12 @@
 ---
 - hosts: kuberlab
-  gather_facts: false
+  gather_facts: yes
   become: yes
   vars:
     k3s_version: v1.22.3+k3s1 
     ansible_user: vagrant # or 'ec2-user' for aws ec2 instances
     ansible_become: true
     systemd_dir: /etc/systemd/system
-    # master_ip: "{{ hostvars['master'].ansible_host }}"
     master_ip: "{{ hostvars[groups['kuberlab'][0]]['ansible_host'] | default(groups['kuberlab'][0]) }}"
     extra_server_args: ""
     extra_agent_args: ""
@@ -206,6 +205,4 @@
     - name: Disply "kubectl get nodes" output
       ansible.builtin.debug:
         msg: "{{ get_node.stdout_lines }}"
-        #var: get_node
-        #verbosity: 6
       when: inventory_hostname == groups['kuberlab'][0]
