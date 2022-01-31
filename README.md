@@ -7,11 +7,7 @@
 [![Youtube Badge](https://img.shields.io/badge/-geekestan-red?style=plastic&&logo=youtube&message=geekestan&logoColor=white)](https://www.youtube.com/channel/UCBlOVqLEwcvFNG03KDAVTlw)
 -->
 
-This is a 3-node-cluster Kubernetes that uses `k3s`.
-This project was prepared for *two type of vagrant prividers*:
-1. `virtualbox` : Checkout to `virtualbox` branch
-2. `libvirt` : Checkout to `main` branch
-
+This is a 3-node-cluster Kubernetes that uses `k3s`. It can be very usefull for learning Kubernetes concepts easy and fast without struggling with installing kubernetes by `kubeadm` or `minikube`. Although learning methods of Kubernetes installation is definitely crucial, for first step and for learning vital and basic concepts of Kubernetes we need a lightweight and repeatable infrastructure.
 
 ### Requirement
 
