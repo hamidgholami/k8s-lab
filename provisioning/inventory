@@ -1,8 +1,0 @@
-[machine]
-master ansible_host=192.168.11.21
-worker-1 ansible_host=192.168.11.22
-worker-2 ansible_host=192.168.11.23
-[kuberlab]
-master
-worker-1
-worker-2
