@@ -22,20 +22,22 @@ Vagrant.configure("2") do |config|
 				machine.vm.network "forwarded_port", guest: 8080, host: 8080
 				machine.vm.network "forwarded_port", guest: 443, host: 443
 				machine.vm.network "forwarded_port", guest: 8443, host: 8443
-				machine.vm.provider "virtualbox" do |v|
-					v.memory = 1024
-					v.cpus = 1
+				machine.vm.provider "virtualbox" do |vb|
+					vb.vm.synced_folder '.', '/vagrant', disabled: true
+					vb.memory = 1024
+					vb.cpus = 1
 					#v.storage_pool_name = 'pool_myhome_SSD'
 				end
 			elsif PROVIDER == "libvirt" then
 				machine.vm.network :private_network , :ip =>  "192.168.11.#{20+machine_id}", :libvirt__forward_mode => "route",	:libvirt__dhcp_enabled => false
-				machine.vm.provider "libvirt" do |v|
+				machine.vm.provider "libvirt" do |lv|
+					lv.vm.synced_folder '.', '/vagrant', disabled: true
 					# These disks are used for installing distributed storage tools such as: rook-ceph, longhorn
-					v.storage :file, :size => '1G'
-					v.storage :file, :size => '1G'
-					v.storage :file, :size => '1G'
-					v.memory = 1024
-					v.cpus = 2
+					# lv.storage :file, :size => '1G'
+					# lv.storage :file, :size => '1G'
+					# lv.storage :file, :size => '1G'
+					lv.memory = 1024
+					lv.cpus = 2
 					#v.storage_pool_name = 'pool_myhome_SSD'
 				end
 			end
@@ -48,7 +50,7 @@ Vagrant.configure("2") do |config|
 			ansible.host_key_checking = false
 			ansible.extra_vars = { ansible_ssh_private_key_file: './provisioning/files/insecure_private_key'}
 			ansible.playbook = "provisioning/site.yml"
-			ansible.verbose = "-v"
+			ansible.verbose = "-vv"
 			# ansible.inventory_path = "provisioning/inventory"
 			ansible.groups = {
 				"kuberlab" => ["node-1", "node-2", "node-3"],
