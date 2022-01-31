@@ -32,5 +32,6 @@ scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/con
 <summary> Preview</summary>
 
 - [ ] Adding `virtualbox` as a provider in Vagrantfile that dynamicly detect provider(between libvirt and virtualbox)
+- [ ] Prepare all configurations for `Terraform` and `AWS`.
 
 </details>
