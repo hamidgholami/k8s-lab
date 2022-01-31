@@ -22,5 +22,5 @@ vagrant up
 ### Kubeconfig
 
 ```
-scp vagrant@master_ip:~/.kube/config ~/.kube/config
+scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/config ~/.kube/config
 ```
