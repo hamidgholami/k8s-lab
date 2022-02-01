@@ -14,12 +14,14 @@ Make sure that following tools are installed on your host.
 
 1. Ansible
 2. Vagrant
-3. libvirt/KVM
+3. libvirt/KVM or virtualbox
 
 ### How is it work?
-Run below command:
+Run below commands:
 ```bash
 vagrant up --provider libvirt
+# OR
+vagrant up --provider virtualbox
 ```
 ### Kubeconfig
 
@@ -31,7 +33,7 @@ scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/con
 <details> 
 <summary> Preview</summary>
 
-- [ ] Adding `virtualbox` as a provider in Vagrantfile that dynamicly detect provider(between libvirt and virtualbox)
+- [*] Adding `virtualbox` as a provider in Vagrantfile that dynamicly detect provider(between libvirt and virtualbox)
 - [ ] Prepare all configurations for `Terraform` and `AWS`.
 
 </details>
