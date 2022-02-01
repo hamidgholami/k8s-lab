@@ -4,7 +4,7 @@
 
 ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
-PROVIDER = ["virtualbox", "libvirt"]
+provider = (ARGV[2] || ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_sym
 
 Vagrant.configure("2") do |config|
 
@@ -16,30 +16,33 @@ Vagrant.configure("2") do |config|
 			machine.vm.hostname = "node-#{machine_id}"
 			machine.vm.synced_folder '.', '/vagrant', type: 'rsync', disabled: true
 			machine.vm.synced_folder '.', '/vagrant', disabled: true
-			# machine.vm.network :private_network , :ip =>  "192.168.56.#{20+machine_id}", 
-			# 					:libvirt__forward_mode => "route",	
-			# 					:libvirt__dhcp_enabled => false
-
-			machine.vm.provider "virtualbox" do |vb|
-				vb.memory = 1024
-				vb.cpus = 1
-				#v.storage_pool_name = 'pool_myhome_SSD'
+			if provider == :virtualbox then
+				machine.vm.network :private_network , :ip =>  "192.168.56.#{20+machine_id}"
+				# machine.vm.network "forwarded_port", guest: 6443, host: 6020, host_ip: "192.168.2.85"
+				# machine.vm.network "forwarded_port", guest: 6444, host: 6030, host_ip: "192.168.2.85"
+				# machine.vm.network "forwarded_port", guest: 8080, host: 6040, host_ip: "192.168.2.85"
+				# machine.vm.network "forwarded_port", guest: 443, host: 6050, host_ip: "192.168.2.85"
+				# machine.vm.network "forwarded_port", guest: 8443, host: 6060, host_ip: "192.168.2.85"
+				machine.vm.provider "virtualbox" do |vb|
+					vb.memory = 1024
+					vb.cpus = 1
+					vb.name = "node-#{machine_id}"
+				end
 			end
-			machine.vm.provider "libvirt" do |lv|
-				# These disks are used for installing distributed storage tools such as: rook-ceph, longhorn
+			if provider == :libvirt then
+				machine.vm.network :private_network , :ip =>  "192.168.11.#{20+machine_id}", 
+										:libvirt__forward_mode => "route",	
+										:libvirt__dhcp_enabled => false
+				machine.vm.provider "libvirt" do |lv|
+				## These disks are used for installing 
+				## distributed storage tools such as: rook-ceph, longhorn
 				# lv.storage :file, :size => '1G'
 				# lv.storage :file, :size => '1G'
 				# lv.storage :file, :size => '1G'
 				lv.memory = 1024
 				lv.cpus = 2
 				#v.storage_pool_name = 'pool_myhome_SSD'
-			end
-			if PROVIDER == "virtualbox" then
-				machine.vm.network "forwarded_port", guest: 6443, host: 6443 
-				machine.vm.network "forwarded_port", guest: 6444, host: 6444
-				machine.vm.network "forwarded_port", guest: 8080, host: 8080
-				machine.vm.network "forwarded_port", guest: 443, host: 443
-				machine.vm.network "forwarded_port", guest: 8443, host: 8443
+				end
 			end
 		# Only execute once the Ansible provisioner
 		# when all the machines are up and ready.
