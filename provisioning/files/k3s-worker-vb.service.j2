@@ -1,0 +1,22 @@
+#/etc/systemd/system/k3s-worker.service
+[Unit]
+Description= k3s service
+After=network-online.target
+
+[Service]
+Type=notify
+ExecStartPre=-/sbin/modprobe br_netfilter
+ExecStartPre=-/sbin/modprobe overlay
+ExecStart=/usr/local/bin/k3s agent --data-dir {{ k3s_server_location }} --server https://{{ master_ip_for_join_worker }}:6443 --token {{ hostvars[groups['kuberlab'][0]]['token'] }} {{ extra_agent_args | default("") }}
+KillMode=process
+Delegate=yes
+LimitNOFILE=1048576
+LimitNPROC=infinity
+LimitCORE=infinity
+TasksMax=infinity
+TimeoutStartSec=0
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,209 @@
+---
+- hosts: kuberlab
+  gather_facts: yes
+  become: yes
+  vars:
+    k3s_version: v1.22.3+k3s1 
+    ansible_user: vagrant # or 'ec2-user' for aws ec2 instances
+    ansible_become: true
+    systemd_dir: /etc/systemd/system
+    master_ip: "{{ hostvars[groups['kuberlab'][0]]['ansible_host'] | default(groups['kuberlab'][0]) }}"
+    master_ip_for_join_worker: "192.168.56.21"
+    extra_server_args: ""
+    extra_agent_args: ""
+    k3s_server_location: /var/lib/rancher/k3s
+  
+  pre_tasks:
+    - name: Set SELinux to disabled state
+      selinux:
+        state: disabled
+      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+
+    - name: Enable IPv4 forwarding
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: "1"
+        state: present
+        reload: yes
+    
+    - name: Add /usr/local/bin to sudo secure_path
+      lineinfile:
+        line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'
+        regexp: "Defaults(\\s)*secure_path(\\s)*="
+        state: present
+        insertafter: EOF
+        path: /etc/sudoers
+        validate: 'visudo -cf %s'
+      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+
+    - name: Enable IPv6 forwarding
+      sysctl:
+        name: net.ipv6.conf.all.forwarding
+        value: "1"
+        state: present
+        reload: yes
+      when: ansible_all_ipv6_addresses
+    
+    - name: Add br_netfilter to /etc/modules-load.d/
+      copy:
+        content: "br_netfilter"
+        dest: /etc/modules-load.d/br_netfilter.conf
+        mode: "u=rw,g=,o="
+      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+    
+    - name: Load br_netfilter
+      modprobe:
+        name: br_netfilter
+        state: present
+      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+    
+    - name: Set bridge-nf-call-iptables
+      sysctl:
+        name: "{{ item }}"
+        value: "1"
+        state: present
+        reload: yes
+      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
+      loop:
+        - net.bridge.bridge-nf-call-iptables
+        - net.bridge.bridge-nf-call-ip6tables
+
+  tasks:
+    - name: Download k3s binary x64
+      get_url:
+        url: https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/k3s
+        checksum: sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_version }}/sha256sum-amd64.txt
+        dest: /usr/local/bin/k3s
+        owner: root
+        group: root
+        mode: 0755
+      when: ansible_facts.architecture == "x86_64"
+
+# ----------------------------------- For connecting to local registry e.g Nexus or Jfog-Artifactory --------------------------------------------------
+    # - name: Copy registries.yaml
+    #   changed_when: false
+    #   copy:
+    #     src: "registries.yaml"
+    #     dest: "/etc/rancher/k3s/"
+# -------------------------------------------------------------------------------------------------------------------------------------------------------
+    - name: Copy files k3s-master.service
+      changed_when: false
+      ansible.builtin.template:
+        src: "files/k3s-master.service.j2"
+        dest: "{{ systemd_dir }}/k3s-master.service"
+        owner: root
+        group: root
+        mode: 0644
+      when: inventory_hostname == groups['kuberlab'][0]
+
+    - name: Start & Enable k3s-master.service
+      systemd:
+        name: k3s-master.service
+        state: restarted
+        enabled: yes
+        daemon-reload: yes
+      when: inventory_hostname == groups['kuberlab'][0]
+
+    - name: Wait for 'token'
+      wait_for:
+        path: "{{ k3s_server_location }}/server/node-token"
+      when: inventory_hostname == groups['kuberlab'][0]
+
+    - name: Register node-token file access mode
+      stat:
+        path: "{{ k3s_server_location }}/server/node-token"
+      register: p
+      when: inventory_hostname == groups['kuberlab'][0]
+    
+    - name: Change file access node-token
+      file:
+        path: "{{ k3s_server_location }}/server/node-token"
+        mode: "g+rx,o+rx"
+      when: inventory_hostname == groups['kuberlab'][0]
+    
+    - name: Read node-token from master
+      slurp:
+        path: "{{ k3s_server_location }}/server/node-token"
+      register: node_token
+      when: inventory_hostname == groups['kuberlab'][0]
+
+    - name: Store Master node-token
+      set_fact:
+        token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+      when: inventory_hostname == groups['kuberlab'][0]
+    
+    - name: Restore node-token file access
+      file:
+        path: "{{ k3s_server_location }}/server/node-token"
+        mode: "{{ p.stat.mode }}"
+      when: inventory_hostname == groups['kuberlab'][0]
+
+    - name: Create directory .kube
+      file:
+        path: ~{{ ansible_user }}/.kube
+        state: directory
+        owner: "{{ ansible_user }}"
+        mode: "u=rwx,g=rx,o="
+      when: inventory_hostname == groups['kuberlab'][0]
+
+    - name: Copy config file to user home directory
+      copy:
+        src: /etc/rancher/k3s/k3s.yaml
+        dest: ~{{ ansible_user }}/.kube/config
+        remote_src: yes
+        owner: "{{ ansible_user }}"
+        mode: "u=rw,g=,o="
+      when: inventory_hostname == groups['kuberlab'][0]
+    
+    - name: Replace https://localhost:6443 by https://master-ip:6443
+      command: >-
+        k3s kubectl config set-cluster default
+          --server=https://{{ master_ip_for_join_worker }}:6443
+          --kubeconfig ~{{ ansible_user }}/.kube/config
+      changed_when: true
+      when: inventory_hostname == groups['kuberlab'][0]
+    
+    - name: Create kubectl symlink
+      file:
+        src: /usr/local/bin/k3s
+        dest: /usr/local/bin/kubectl
+        state: link
+      when: inventory_hostname == groups['kuberlab'][0]
+    
+    - name: Create crictl symlink
+      file:
+        src: /usr/local/bin/k3s
+        dest: /usr/local/bin/crictl
+        state: link
+      when: inventory_hostname == groups['kuberlab'][0]
+
+    - name: Copy files k3s-worker-vb.service
+      changed_when: false
+      ansible.builtin.template:
+        src: "files/k3s-worker-vb.service.j2"
+        dest: "{{ systemd_dir }}/k3s-worker-vb.service"
+        owner: root
+        group: root
+        mode: 0755
+      when: inventory_hostname != groups['kuberlab'][0]
+
+    - name: Start & Enable k3s-worker-vb.service
+      systemd:
+        name: k3s-worker-vb.service
+        state: started
+        enabled: yes
+        daemon-reload: yes
+      when: inventory_hostname != groups['kuberlab'][0]
+
+    - name: Get your Kubernetes Cluster information
+      ansible.builtin.shell: echo "kubectl get nodes" && /usr/local/bin/k3s kubectl get node && echo "kubectl get namespaces" && /usr/local/bin/k3s kubectl get ns
+      args:
+        executable: /bin/bash
+        warn: false
+      register: get_node
+      when: inventory_hostname == groups['kuberlab'][0]
+    
+    - name: Disply "kubectl get nodes" output
+      ansible.builtin.debug:
+        msg: "{{ get_node.stdout_lines }}"
+      when: inventory_hostname == groups['kuberlab'][0]
