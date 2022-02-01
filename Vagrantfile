@@ -18,11 +18,6 @@ Vagrant.configure("2") do |config|
 			machine.vm.synced_folder '.', '/vagrant', disabled: true
 			if provider == :virtualbox then
 				machine.vm.network :private_network , :ip =>  "192.168.56.#{20+machine_id}"
-				# machine.vm.network "forwarded_port", guest: 6443, host: 6020, host_ip: "192.168.2.85"
-				# machine.vm.network "forwarded_port", guest: 6444, host: 6030, host_ip: "192.168.2.85"
-				# machine.vm.network "forwarded_port", guest: 8080, host: 6040, host_ip: "192.168.2.85"
-				# machine.vm.network "forwarded_port", guest: 443, host: 6050, host_ip: "192.168.2.85"
-				# machine.vm.network "forwarded_port", guest: 8443, host: 6060, host_ip: "192.168.2.85"
 				machine.vm.provider "virtualbox" do |vb|
 					vb.memory = 1024
 					vb.cpus = 1
@@ -52,13 +47,15 @@ Vagrant.configure("2") do |config|
 			ansible.limit = "all"
 			ansible.host_key_checking = false
 			ansible.extra_vars = { ansible_ssh_private_key_file: './provisioning/files/insecure_private_key'}
-			ansible.playbook = "provisioning/site.yml"
 			# ansible.verbose = "-v"
+			if provider == :virtualbox then
+				ansible.playbook = "provisioning/site-vb.yml"
+			end
+			if provider == :libvirt then
+				ansible.playbook = "provisioning/site.yml"
+			end
 			ansible.groups = {
 				"kuberlab" => ["node-1", "node-2", "node-3"],
-				# "machine" => {
-				# 	"master" => "ansible_host=172.10.10.21"
-				# }
 			}
 		      end
 		   end
