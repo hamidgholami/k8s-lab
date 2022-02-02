@@ -34,6 +34,7 @@ scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/con
 <summary> Preview</summary>
 
 - [x] Adding `virtualbox` as a provider in Vagrantfile that dynamicly detect provider(between libvirt and virtualbox)
+- [ ] Using sync folder or file for transfer `~/.kube/config` from guest to host.
 - [ ] Adding a step-by-step guide line for using it on `windows 10 wsl`. That should contain:
   - [ ] Installing `wsl` on `Windows 10`.
   - [ ] Installing and configuring `vagrant` on `wsl`.
