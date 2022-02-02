@@ -34,7 +34,11 @@ scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/con
 <summary> Preview</summary>
 
 - [x] Adding `virtualbox` as a provider in Vagrantfile that dynamicly detect provider(between libvirt and virtualbox)
-- [ ] Adding a step-by-step guide line for using it on `windows 10 wsl`.
+- [ ] Adding a step-by-step guide line for using it on `windows 10 wsl`. That should contain:
+  - [ ] Installing `wsl` on `Windows 10`.
+  - [ ] Installing and configuring `vagrant` on `wsl`.
+  - [ ] Installing `virtualbox` on `Windows 10`.
+  - [ ] Installing `ansible` on `wsl`.
 - [ ] Prepare all configurations for `Terraform` and with `AWS` provider.
 
 </details>
