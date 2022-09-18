@@ -29,6 +29,7 @@ vagrant up --provider virtualbox
 scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/config ~/.kube/config
 ```
 ***
+
 ### TO DO
 <details> 
 <summary> Preview</summary>
