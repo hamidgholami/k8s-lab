@@ -47,7 +47,7 @@ scp -i vagrant@10.0.0.21:~/.kube/config ~/.kube/config
 ```
 #### Changing default storage pool directory
 [URL](https://serverfault.com/questions/840519/how-to-change-the-default-storage-pool-from-libvirt)
-
+For changing storage pool default path, the following commands can be used:
 ```bash
 virsh pool-list
 virsh pool-destroy default
