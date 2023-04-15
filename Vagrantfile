@@ -1,7 +1,7 @@
 # encoding: utf-8
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-
+IMAGE_DEBIAN_11 = "generic/debian11"
 ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 
 provider = (ARGV[2] || ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_sym
@@ -12,7 +12,7 @@ Vagrant.configure("2") do |config|
 	(1..N).each do |machine_id|
 		config.vm.define "node-#{machine_id}" do |machine|
 			machine.ssh.insert_key = false
-			machine.vm.box = "centos/7"
+			machine.vm.box = IMAGE_DEBIAN_11
 			machine.vm.hostname = "node-#{machine_id}"
 			machine.vm.synced_folder '.', '/vagrant', type: 'rsync', disabled: true
 			machine.vm.synced_folder '.', '/vagrant', disabled: true

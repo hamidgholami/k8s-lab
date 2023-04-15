@@ -3,7 +3,7 @@
   gather_facts: yes
   become: yes
   vars:
-    k3s_version: v1.22.3+k3s1 
+    k3s_version: v1.26.4-rc1+k3s1
     ansible_user: vagrant # or 'ec2-user' for aws ec2 instances
     ansible_become: true
     systemd_dir: /etc/systemd/system
@@ -11,61 +11,15 @@
     extra_server_args: ""
     extra_agent_args: ""
     k3s_server_location: /var/lib/rancher/k3s
+    with_registry_file: false
   
   pre_tasks:
-    - name: Set SELinux to disabled state
-      selinux:
-        state: disabled
-      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
-
     - name: Enable IPv4 forwarding
       sysctl:
         name: net.ipv4.ip_forward
         value: "1"
         state: present
         reload: yes
-    
-    - name: Add /usr/local/bin to sudo secure_path
-      lineinfile:
-        line: 'Defaults    secure_path = /sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin'
-        regexp: "Defaults(\\s)*secure_path(\\s)*="
-        state: present
-        insertafter: EOF
-        path: /etc/sudoers
-        validate: 'visudo -cf %s'
-      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
-
-    - name: Enable IPv6 forwarding
-      sysctl:
-        name: net.ipv6.conf.all.forwarding
-        value: "1"
-        state: present
-        reload: yes
-      when: ansible_all_ipv6_addresses
-    
-    - name: Add br_netfilter to /etc/modules-load.d/
-      copy:
-        content: "br_netfilter"
-        dest: /etc/modules-load.d/br_netfilter.conf
-        mode: "u=rw,g=,o="
-      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
-    
-    - name: Load br_netfilter
-      modprobe:
-        name: br_netfilter
-        state: present
-      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
-    
-    - name: Set bridge-nf-call-iptables
-      sysctl:
-        name: "{{ item }}"
-        value: "1"
-        state: present
-        reload: yes
-      when: ansible_distribution in ['CentOS', 'Red Hat Enterprise Linux']
-      loop:
-        - net.bridge.bridge-nf-call-iptables
-        - net.bridge.bridge-nf-call-ip6tables
 
   tasks:
     - name: Download k3s binary x64
@@ -78,13 +32,23 @@
         mode: 0755
       when: ansible_facts.architecture == "x86_64"
 
-# ----------------------------------- For connecting to local registry e.g Nexus or Jfog-Artifactory --------------------------------------------------
-    # - name: Copy registries.yaml
-    #   changed_when: false
-    #   copy:
-    #     src: "registries.yaml"
-    #     dest: "/etc/rancher/k3s/"
-# -------------------------------------------------------------------------------------------------------------------------------------------------------
+    - name: Create "/etc/rancher/k3s" directory
+      changed_when: false
+      state: directory
+      path: "/etc/rancher/k3s"
+      owner: root
+      group: root
+      # with_nested:
+      #   - ['rancher','k3s']
+      when: with_registry_file
+    
+    - name: Copy registries.yaml
+      changed_when: false
+      copy:
+        src: "registries.yaml"
+        dest: "/etc/rancher/k3s/"
+      when: with_registry_file
+
     - name: Copy files k3s-master.service
       changed_when: false
       ansible.builtin.template:
@@ -195,14 +159,24 @@
       when: inventory_hostname != groups['kuberlab'][0]
 
     - name: Get your Kubernetes Cluster information
-      ansible.builtin.shell: echo "kubectl get nodes" && /usr/local/bin/k3s kubectl get node && echo "kubectl get namespaces" && /usr/local/bin/k3s kubectl get ns
+      ansible.builtin.shell: |
+        echo "::: nodes :::" && \
+        /usr/local/bin/k3s kubectl get node && \
+        echo "::: namespaces :::" && \
+        /usr/local/bin/k3s kubectl get ns && \
+        echo "::: componentstatuses :::" && \
+        /usr/local/bin/k3s kubectl get cs && \
+        echo "::: cluster-info :::" && \
+        /usr/local/bin/k3s kubectl cluster-info && \
+        echo "::: version :::" && \
+        /usr/local/bin/k3s kubectl version
       args:
         executable: /bin/bash
         warn: false
       register: get_node
       when: inventory_hostname == groups['kuberlab'][0]
     
-    - name: Disply "kubectl get nodes" output
+    - name: Disply "Cluster Informations" output
       ansible.builtin.debug:
         msg: "{{ get_node.stdout_lines }}"
       when: inventory_hostname == groups['kuberlab'][0]
