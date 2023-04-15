@@ -9,30 +9,30 @@
 
 This is a <ins>3-node-cluster</ins> Kubernetes that uses `k3s`. It can be very usefull for learning Kubernetes concepts easy and fast without struggling with installing kubernetes by `kubeadm` or `minikube`. Although learning methods of Kubernetes installation is definitely crucial, for first step and for learning vital and basic concepts of Kubernetes we need a lightweight and repeatable infrastructure.
 
-### Requirement
+#### Requirement
 Make sure that following tools are installed on your host.
 
 1. Ansible
 2. Vagrant
 3. libvirt/KVM or virtualbox
 
-### How is it work?
+#### How is it work?
 Run below commands:
 ```bash
 vagrant up --provider libvirt
 # OR
 vagrant up --provider virtualbox
 ```
-### Kubeconfig
+#### Kubeconfig
 
 ```
 scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/config ~/.kube/config
 ```
 ***
-### Changing default storage pool directory
+#### Changing default storage pool directory
+[URL](https://serverfault.com/questions/840519/how-to-change-the-default-storage-pool-from-libvirt)
 
 ```bash
-# reference: https://serverfault.com/questions/840519/how-to-change-the-default-storage-pool-from-libvirt
 virsh pool-list
 virsh pool-destroy default
 virsh pool-undefine default
@@ -45,13 +45,8 @@ virsh pool-start default
 <details> 
 <summary> Preview</summary>
 
-- [x] Adding `virtualbox` as a provider in Vagrantfile that dynamicly detect provider(between libvirt and virtualbox)
 - [ ] Using sync folder or file for transfer `~/.kube/config` from guest to host.
-- [ ] Adding a step-by-step guide line for using it on `windows 10 wsl`. That should contain:
-  - [ ] Installing `wsl` on `Windows 10`.
-  - [ ] Installing and configuring `vagrant` on `wsl`.
-  - [ ] Installing `virtualbox` on `Windows 10`.
-  - [ ] Installing `ansible` on `wsl`.
-- [ ] Prepare all configurations for `Terraform` and with `AWS` provider.
+- [ ] Adding `k get cs`, `k cluster-info` and `k version` in Ansible
+- [ ] Parameterized Kubernetes version. Using `Debian 11` as a vagrant box, instead of `Centos7`
 
 </details>
