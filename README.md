@@ -16,7 +16,24 @@ Make sure that following tools are installed on your host.
 2. Vagrant
 3. libvirt/KVM or virtualbox
 
-#### How is it work?
+#### SSH configuration
+Add the following configuration in `~/.ssh/config`
+```bash
+Host 10.0.0.*
+        Hostname %h
+
+Match Host 10.0.0.*
+        User vagrant
+        Port 22
+        UserKnownHostsFile /dev/null
+        StrictHostKeyChecking no
+        PasswordAuthentication no
+        IdentityFile $HOME/.vagrant.d/insecure_private_key
+        IdentitiesOnly yes
+        LogLevel FATAL
+
+```
+#### How does it work?
 Run below commands:
 ```bash
 vagrant up --provider libvirt
@@ -24,11 +41,10 @@ vagrant up --provider libvirt
 vagrant up --provider virtualbox
 ```
 #### Kubeconfig
-
+For executing `kubectl` from your machine rather than in master node (`node-1`), copy the kubectl configuration in your machine:
 ```
-scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/config ~/.kube/config
+scp -i vagrant@10.0.0.21:~/.kube/config ~/.kube/config
 ```
-***
 #### Changing default storage pool directory
 [URL](https://serverfault.com/questions/840519/how-to-change-the-default-storage-pool-from-libvirt)
 
@@ -40,13 +56,3 @@ virsh pool-define-as --name default --type dir --target /hdd/pool_ssd_nvm
 virsh pool-autostart default
 virsh pool-start default
 ```
-
-### TO DO
-<details> 
-<summary> Preview</summary>
-
-- [ ] Using sync folder or file for transfer `~/.kube/config` from guest to host.
-- [ ] Adding `k get cs`, `k cluster-info` and `k version` in Ansible
-- [ ] Parameterized Kubernetes version. Using `Debian 11` as a vagrant box, instead of `Centos7`
-
-</details>
