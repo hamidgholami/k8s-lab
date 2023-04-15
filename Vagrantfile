@@ -36,7 +36,7 @@ Vagrant.configure("2") do |config|
 				# lv.storage :file, :size => '1G'
 				lv.memory = 1024
 				lv.cpus = 2
-				#v.storage_pool_name = 'pool_myhome_SSD'
+				# lv.storage_pool_name = 'pool_ssd_nvm'
 				end
 			end
 		# Only execute once the Ansible provisioner

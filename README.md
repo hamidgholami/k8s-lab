@@ -29,6 +29,17 @@ vagrant up --provider virtualbox
 scp -i ./provisioning/files/insecure_private_key vagrant@<node-1-ip>:~/.kube/config ~/.kube/config
 ```
 ***
+### Changing default storage pool directory
+
+```bash
+# reference: https://serverfault.com/questions/840519/how-to-change-the-default-storage-pool-from-libvirt
+virsh pool-list
+virsh pool-destroy default
+virsh pool-undefine default
+virsh pool-define-as --name default --type dir --target /hdd/pool_ssd_nvm
+virsh pool-autostart default
+virsh pool-start default
+```
 
 ### TO DO
 <details> 
