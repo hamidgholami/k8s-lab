@@ -39,8 +39,6 @@
         path: "/etc/rancher/k3s"
         owner: root
         group: root
-      # with_nested:
-      #   - ['rancher','k3s']
       when: with_registry_file
     
     - name: Copy registries.yaml
