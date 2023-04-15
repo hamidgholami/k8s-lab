@@ -172,10 +172,10 @@
       args:
         executable: /bin/bash
         warn: false
-      register: get_node
+      register: cluster_info
       when: inventory_hostname == groups['kuberlab'][0]
     
     - name: Disply "Cluster Informations" output
       ansible.builtin.debug:
-        msg: "{{ get_node.stdout_lines }}"
+        msg: "{{ cluster_info.stdout_lines }}"
       when: inventory_hostname == groups['kuberlab'][0]
