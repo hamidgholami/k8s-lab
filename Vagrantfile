@@ -25,7 +25,7 @@ Vagrant.configure("2") do |config|
 				end
 			end
 			if provider == :libvirt then
-				machine.vm.network :private_network , :ip =>  "192.168.11.#{20+machine_id}", 
+				machine.vm.network :private_network , :ip =>  "10.0.0.#{20+machine_id}", 
 										:libvirt__forward_mode => "route",	
 										:libvirt__dhcp_enabled => false
 				machine.vm.provider "libvirt" do |lv|
@@ -46,7 +46,9 @@ Vagrant.configure("2") do |config|
 			# Disable default limit to connect to all the machines
 			ansible.limit = "all"
 			ansible.host_key_checking = false
-			ansible.extra_vars = { ansible_ssh_private_key_file: './provisioning/files/insecure_private_key'}
+			ansible.extra_vars = { 
+				ansible_ssh_private_key_file: './provisioning/files/insecure_private_key'
+			}
 			# ansible.verbose = "-v"
 			if provider == :virtualbox then
 				ansible.playbook = "provisioning/site-vb.yml"
@@ -55,7 +57,13 @@ Vagrant.configure("2") do |config|
 				ansible.playbook = "provisioning/site.yml"
 			end
 			ansible.groups = {
-				"kuberlab" => ["node-1", "node-2", "node-3"],
+				"kuberlab:children" => ["master", "worker1", "worker2"],
+				"master" => ["node-1"],
+				"worker1" => ["node-2"],
+				"worker2" => ["node-3"],
+				"master:vars" => {ansible_ssh_host: "10.0.0.21"},
+				"worker1:vars" => {ansible_ssh_host: "10.0.0.22"},
+				"worker2:vars" => {ansible_ssh_host: "10.0.0.23"}
 			}
 		      end
 		   end

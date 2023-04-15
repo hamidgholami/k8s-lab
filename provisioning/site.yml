@@ -32,12 +32,13 @@
         mode: 0755
       when: ansible_facts.architecture == "x86_64"
 
-    - name: Create "/etc/rancher/k3s" directory
+    - name: Create /etc/rancher/k3s directory
       changed_when: false
-      state: directory
-      path: "/etc/rancher/k3s"
-      owner: root
-      group: root
+      file:
+        state: directory
+        path: "/etc/rancher/k3s"
+        owner: root
+        group: root
       # with_nested:
       #   - ['rancher','k3s']
       when: with_registry_file
@@ -161,13 +162,13 @@
     - name: Get your Kubernetes Cluster information
       ansible.builtin.shell: |
         echo "::: nodes :::" && \
-        /usr/local/bin/k3s kubectl get node && \
+        /usr/local/bin/k3s kubectl get node ; echo && \
         echo "::: namespaces :::" && \
-        /usr/local/bin/k3s kubectl get ns && \
+        /usr/local/bin/k3s kubectl get ns ; echo && \
         echo "::: componentstatuses :::" && \
-        /usr/local/bin/k3s kubectl get cs && \
+        /usr/local/bin/k3s kubectl get cs ; echo && \
         echo "::: cluster-info :::" && \
-        /usr/local/bin/k3s kubectl cluster-info && \
+        /usr/local/bin/k3s kubectl cluster-info ; echo && \
         echo "::: version :::" && \
         /usr/local/bin/k3s kubectl version
       args:
