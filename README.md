@@ -43,7 +43,7 @@ vagrant up --provider virtualbox
 #### Kubeconfig
 For executing `kubectl` from your machine rather than in master node (`node-1`), copy the kubectl configuration in your machine:
 ```
-scp -i vagrant@10.0.0.21:~/.kube/config ~/.kube/config
+scp vagrant@10.0.0.21:~/.kube/config ~/.kube/config
 ```
 #### Changing default storage pool directory
 [URL](https://serverfault.com/questions/840519/how-to-change-the-default-storage-pool-from-libvirt)<br/>
