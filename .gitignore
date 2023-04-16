@@ -1,4 +1,4 @@
 test/
 .vagrant/
-provisioning/inventory
+.idea
 *.log
