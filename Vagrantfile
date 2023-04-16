@@ -50,9 +50,9 @@ Vagrant.configure("2") do |config|
           ansible.extra_vars = {
             ansible_ssh_private_key_file: './provisioning/files/insecure_private_key'
           }
+          ansible.playbook = "provisioning/site.yml"
           # ansible.verbose = "-v"
           if provider != :libvirt then
-            ansible.playbook = "provisioning/site-vb.yml"
             ansible.groups = {
               "kuberlab:children" => ["master", "worker1", "worker2"],
               "master" => ["node-1"],
@@ -73,7 +73,6 @@ Vagrant.configure("2") do |config|
             }
           end
           if provider == :libvirt then
-            ansible.playbook = "provisioning/site.yml"
             ansible.groups = {
               "kuberlab:children" => ["master", "worker1", "worker2"],
               "master" => ["node-1"],
