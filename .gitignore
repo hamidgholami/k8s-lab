@@ -2,3 +2,4 @@ test/
 .vagrant/
 .idea
 *.log
+*.swp
