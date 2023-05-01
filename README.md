@@ -47,7 +47,7 @@ Match Host 192.168.56.*
 
 ```
 #### How does it work?
-Run below commands:
+Fill the variables in `vagrant_variables.yaml` and then execute the following command:
 ```bash
 vagrant up
 ```
