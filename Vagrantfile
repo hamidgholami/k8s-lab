@@ -1,71 +1,109 @@
 # encoding: utf-8
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
-IMAGE_DEBIAN_11 = "generic/debian11"
-provider = (ARGV[2] || ENV['VAGRANT_DEFAULT_PROVIDER'] || :virtualbox).to_sym
-ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+Vagrant.require_version ">= 2.3.4"
+VAGRANTFILE_API_VERSION = "2"
 
-Vagrant.configure("2") do |config|
+require 'yaml'
+vagrant_variables = servers = YAML.load_file('vagrant_variables.yaml')
+puts "Config: #{vagrant_variables.inspect}\n\n"
+############################ LOADING VAGRANT VARIABLES #################################
+BOX                       = vagrant_variables['vagrant_box']
+CPU                       = vagrant_variables['cpu']
+MEMORY                    = vagrant_variables['memory']
+SHELL_PROVISION_FILE_PATH = vagrant_variables['vagrant_shell_provision_file_path']
+VM_NAME                   = vagrant_variables['vm_prefix_name']
+VM_NUMBERS                = vagrant_variables['vm_numbers']
+EXTRA_STORAGE             = vagrant_variables['extra_storage']
+EXTRA_STORAGE_SIZE        = vagrant_variables['storage_size']
+PROVIDER                  = vagrant_variables['provider']
 
-  N = 3
+LIBVIRT_BOX_URL          = vagrant_variables['libvirt']['vagrant_box_url']
+LIBVIRT_IP_LAST_OCTET    = vagrant_variables['libvirt']['ip_last_octet']
+LIBVIRT_IP_PREFIX        = vagrant_variables['libvirt']['private_network_ip_prefix']
+VIRTUALBOX_BOX_URL       = vagrant_variables['virtualbox']['vagrant_box_url']
+VIRTUALBOX_IP_LAST_OCTET = vagrant_variables['virtualbox']['ip_last_octet']
+VIRTUALBOX_IP_PREFIX     = vagrant_variables['virtualbox']['private_network_ip_prefix']
+
+PLAYBOOK             = vagrant_variables['ansible_playbook']
+SSH_PRIVATE_KEY_FILE = vagrant_variables['ansible_ssh_private_key_file']
+DEBUG                = vagrant_variables['debug']
+VERBOSITY            = vagrant_variables['ansible_verbose']
+#########################################################################################
+ENV['VAGRANT_NO_PARALLEL'] = vagrant_variables['vagrant_no_parallel']
+
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+  N = VM_NUMBERS
   (1..N).each do |machine_id|
-    config.vm.define "node-#{machine_id}" do |machine|
+    config.vm.define "#{VM_NAME}-#{machine_id}" do |machine|
       machine.ssh.insert_key = false
-      machine.vm.box = IMAGE_DEBIAN_11
-      machine.vm.hostname = "node-#{machine_id}"
+      machine.vm.box = BOX
+      machine.vm.hostname = "#{VM_NAME}-#{machine_id}"
       machine.vm.synced_folder '.', '/vagrant', type: 'rsync', disabled: true
       machine.vm.synced_folder '.', '/vagrant', disabled: true
-      machine.vm.provision "shell", path: "provisioning/bootstrap.sh"
-      if provider != :libvirt then
-        machine.vm.network :private_network, :ip => "192.168.56.1#{30 + machine_id}"
-        # machine.vm.network :private_network, :ip => "192.168.56.1#{30 + machine_id}", :name => 'vboxnet0', :adapter => 2
-        # machine.vm.network :hostonly, "192.168.50.4", :adapter => 2
-        # machine.vm.network :forwarded_port, host: "22#{30 + machine_id}", guest: 22
+      machine.vm.provision "shell", path: SHELL_PROVISION_FILE_PATH
+
+      if PROVIDER == 'virtualbox' then
+        machine.vm.box_url = VIRTUALBOX_BOX_URL
+        machine.vm.network :private_network, :ip => "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + machine_id}"
         machine.vm.provider "virtualbox" do |vb|
-          vb.memory = 1024
-          vb.cpus = 1
-          vb.name = "node-#{machine_id}"
+          vb.memory = MEMORY
+          vb.cpus = CPU
+          vb.name = "#{VM_NAME}-#{machine_id}"
         end
       end
-      if provider == :libvirt then
-        machine.vm.network :private_network, :ip => "10.0.0.#{20 + machine_id}",
+
+      if PROVIDER == 'libvirt' then
+        machine.vm.box_url = LIBVIRT_BOX_URL
+        machine.vm.network :private_network, :ip => "#{LIBVIRT_IP_PREFIX}.#{LIBVIRT_IP_LAST_OCTET + machine_id}",
                            :libvirt__forward_mode => "route",
                            :libvirt__dhcp_enabled => false
         machine.vm.provider "libvirt" do |lv|
-          ###########################################
-          ## In case if you want add some extra disks
-          ###########################################
-          # lv.storage :file, :size => '1G'
-          # lv.storage :file, :size => '1G'
-          # lv.storage :file, :size => '1G'
-          lv.memory = 1024
-          lv.cpus = 2
+          lv.memory = MEMORY
+          lv.cpus = CPU
+          if EXTRA_STORAGE then
+            lv.storage :file, :size => EXTRA_STORAGE_SIZE
+          end
           # lv.storage_pool_name = 'pool_ssd_nvm'
         end
       end
-      # Only execute once the Ansible provisioner,
-      # when all the machines are up and running.
+
       if machine_id == N
         machine.vm.provision :ansible do |ansible|
-          # ansible.verbose = "-v"
-          ansible.playbook = "provisioning/site.yml"
-          ansible.limit = "all" # Disable default limit to connect to all the machines
+          if DEBUG then
+            ansible.verbose = VERBOSITY
+          end
+          ansible.playbook = PLAYBOOK
+          ansible.limit = "all"
           ansible.host_key_checking = false
           ansible.extra_vars = {
-            ansible_ssh_private_key_file: './provisioning/files/insecure_private_key'
+            ansible_ssh_private_key_file: SSH_PRIVATE_KEY_FILE
           }
-          if provider != :libvirt then
+          if PROVIDER == 'virtualbox' then
             ansible.host_vars = {
-              "node-1" => { ansible_ssh_host: "192.168.56.131" },
-              "node-2" => { ansible_ssh_host: "192.168.56.132" },
-              "node-3" => { ansible_ssh_host: "192.168.56.133" },
+              "node-1" => {
+                ansible_ssh_host: "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + 1}",
+                ansible_host: "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + 1}",
+                ansible_port: "22"
+              },
+              "node-2" => {
+                ansible_ssh_host: "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + 2}",
+                ansible_host: "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + 2}",
+                ansible_port: "22"
+              },
+              "node-3" => {
+                ansible_ssh_host: "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + 3}",
+                ansible_host: "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + 3}",
+                ansible_port: "22"
+              },
             }
           end
-          if provider == :libvirt then
+          if PROVIDER == 'libvirt' then
             ansible.host_vars = {
-              "node-1" => { ansible_ssh_host: "10.0.0.21" },
-              "node-2" => { ansible_ssh_host: "10.0.0.22" },
-              "node-3" => { ansible_ssh_host: "10.0.0.23" },
+              "node-1" => { ansible_ssh_host: "#{LIBVIRT_IP_PREFIX}.#{LIBVIRT_IP_LAST_OCTET + 1}" },
+              "node-2" => { ansible_ssh_host: "#{LIBVIRT_IP_PREFIX}.#{LIBVIRT_IP_LAST_OCTET + 2}" },
+              "node-3" => { ansible_ssh_host: "#{LIBVIRT_IP_PREFIX}.#{LIBVIRT_IP_LAST_OCTET + 3}" },
             }
           end
           ansible.groups = {
