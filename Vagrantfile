@@ -6,7 +6,9 @@ VAGRANTFILE_API_VERSION = "2"
 
 require 'yaml'
 vagrant_variables = servers = YAML.load_file('vagrant_variables.yaml')
-puts "Config: #{vagrant_variables.inspect}\n\n"
+if vagrant_variables['debug'] then
+  puts "Config: #{vagrant_variables.inspect}\n\n"
+end
 ############################ LOADING VAGRANT VARIABLES #################################
 BOX                       = vagrant_variables['vagrant_box']
 CPU                       = vagrant_variables['cpu']

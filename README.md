@@ -22,28 +22,39 @@ Add the following configuration in `~/.ssh/config`
 Host 10.0.0.*
         Hostname %h
 
+Host 192.168.56.*                     
+        Hostname %h
+                                               
 Match Host 10.0.0.*
-        User vagrant
+        User vagrant                 
         Port 22
-        UserKnownHostsFile /dev/null
+        UserKnownHostsFile /dev/null     
         StrictHostKeyChecking no
         PasswordAuthentication no
-        IdentityFile $HOME/.vagrant.d/insecure_private_key
-        IdentitiesOnly yes
+        IdentityFile /home/hamidgholami/.vagrant.d/insecure_private_key
+        IdentitiesOnly yes                                                                     
+        LogLevel FATAL          
+                                               
+Match Host 192.168.56.*
+        User vagrant                                                                           
+        Port 22                                                                                
+        UserKnownHostsFile /dev/null                                                           
+        StrictHostKeyChecking no
+        PasswordAuthentication no                                                              
+        IdentityFile /home/hamidgholami/.vagrant.d/insecure_private_key
+        IdentitiesOnly yes                                                                     
         LogLevel FATAL
 
 ```
 #### How does it work?
 Run below commands:
 ```bash
-vagrant up --provider libvirt
-# OR
-vagrant up --provider virtualbox
+vagrant up
 ```
 #### Kubeconfig
 For executing `kubectl` from your machine rather than in master node (`node-1`), copy the kubectl configuration in your machine:
 ```
-scp vagrant@10.0.0.21:~/.kube/config ~/.kube/config
+scp vagrant@<node-1-ip>:~/.kube/config ~/.kube/config
 ```
 #### Changing default storage pool directory
 [URL](https://serverfault.com/questions/840519/how-to-change-the-default-storage-pool-from-libvirt)<br/>
