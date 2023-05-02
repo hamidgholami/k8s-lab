@@ -7,12 +7,12 @@
     ansible_user: vagrant # or 'ec2-user' for aws ec2 instances
     ansible_become: true
     systemd_dir: /etc/systemd/system
-    master_ip: "{{ hostvars[groups['kuberlab'][0]]['ansible_host'] | default(groups['kuberlab'][0]) }}"
+    master_ip: "{{ hostvars[groups['kuberlab'][0]]['ansible_ssh_host'] }}"
     extra_server_args: ""
     extra_agent_args: ""
     k3s_server_location: /var/lib/rancher/k3s
     with_registry_file: false
-  
+
   pre_tasks:
     - name: Enable IPv4 forwarding
       sysctl:
@@ -41,7 +41,7 @@
         owner: root
         group: root
       when: with_registry_file
-    
+
     - name: Copy registries.yaml
       changed_when: false
       copy:
@@ -77,13 +77,13 @@
         path: "{{ k3s_server_location }}/server/node-token"
       register: p
       when: inventory_hostname == groups['kuberlab'][0]
-    
+
     - name: Change file access node-token
       file:
         path: "{{ k3s_server_location }}/server/node-token"
         mode: "g+rx,o+rx"
       when: inventory_hostname == groups['kuberlab'][0]
-    
+
     - name: Read node-token from master
       slurp:
         path: "{{ k3s_server_location }}/server/node-token"
@@ -94,7 +94,7 @@
       set_fact:
         token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
       when: inventory_hostname == groups['kuberlab'][0]
-    
+
     - name: Restore node-token file access
       file:
         path: "{{ k3s_server_location }}/server/node-token"
@@ -117,22 +117,22 @@
         owner: "{{ ansible_user }}"
         mode: "u=rw,g=,o="
       when: inventory_hostname == groups['kuberlab'][0]
-    
-    - name: Replace https://localhost:6443 by https://master-ip:6443
+
+    - name: "Replace https://127.0.0.1:6443 by https://{{ master_ip }}:6443"
       command: >-
         k3s kubectl config set-cluster default
           --server=https://{{ master_ip }}:6443
           --kubeconfig ~{{ ansible_user }}/.kube/config
       changed_when: true
       when: inventory_hostname == groups['kuberlab'][0]
-    
+
     - name: Create kubectl symlink
       file:
         src: /usr/local/bin/k3s
         dest: /usr/local/bin/kubectl
         state: link
       when: inventory_hostname == groups['kuberlab'][0]
-    
+
     - name: Create crictl symlink
       file:
         src: /usr/local/bin/k3s
@@ -175,7 +175,7 @@
         warn: false
       register: cluster_info
       when: inventory_hostname == groups['kuberlab'][0]
-    
+
     - name: Disply "Cluster Informations" output
       ansible.builtin.debug:
         msg: "{{ cluster_info.stdout_lines }}"
