@@ -1,6 +1,6 @@
 # Lightweight Kubernetes Labratory
 
-[![Twitter Follow](https://img.shields.io/twitter/follow/045_hamid?label=045_hamid&style=plastic&logo=twitter&color=blue)](https://twitter.com/geekestan)
+[![Twitter Follow](https://img.shields.io/twitter/follow/045_hamid?label=geekestan&style=plastic&logo=twitter&color=blue)](https://twitter.com/geekestan)
 [![GitHub Follow](https://img.shields.io/github/followers/hamidgholami?label=hamidgholami&style=plastic&logo=github&color=green)](https://github.com/hamidgholami)
 [![Linkedin Badge](https://img.shields.io/badge/hamid--gholami-LinkedIn-blue?logo=linkedin)](https://www.linkedin.com/in/hamid-gholami/)
 [![Youtube Badge](https://img.shields.io/badge/-geekestan-red?style=plastic&&logo=youtube&message=geekestan&logoColor=white)](https://www.youtube.com/@geekestan)
