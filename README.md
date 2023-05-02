@@ -30,7 +30,7 @@ Match Host 10.0.0.*
         UserKnownHostsFile /dev/null     
         StrictHostKeyChecking no
         PasswordAuthentication no
-        IdentityFile /home/hamidgholami/.vagrant.d/insecure_private_key
+        IdentityFile $HOME/.vagrant.d/insecure_private_key
         IdentitiesOnly yes                                                                     
         LogLevel FATAL          
                                                
@@ -40,7 +40,7 @@ Match Host 192.168.56.*
         UserKnownHostsFile /dev/null                                                           
         StrictHostKeyChecking no
         PasswordAuthentication no                                                              
-        IdentityFile /home/hamidgholami/.vagrant.d/insecure_private_key
+        IdentityFile $HOME/.vagrant.d/insecure_private_key
         IdentitiesOnly yes                                                                     
         LogLevel FATAL
 
