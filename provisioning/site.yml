@@ -161,7 +161,7 @@
     - name: Get your Kubernetes Cluster information
       ansible.builtin.shell: |
         echo "::: nodes :::" && \
-        /usr/local/bin/k3s kubectl get node ; echo && \
+        /usr/local/bin/k3s kubectl get node -o wide; echo && \
         echo "::: namespaces :::" && \
         /usr/local/bin/k3s kubectl get ns ; echo && \
         echo "::: componentstatuses :::" && \
