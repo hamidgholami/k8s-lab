@@ -1,10 +1,11 @@
 ---
 provider: 'libvirt' # Or 'virtualbox'
-vagrant_box: "generic/debian11"
+vagrant_box: "debian/bookworm64"
+vagrant_box_version: "12.20230723.1"
 vm_numbers: 3
 vm_prefix_name: 'node'
-cpu: 1
-memory: 1024
+cpu: 2
+memory: 3048
 extra_storage: false
 storage_size: '1G'
 vagrant_no_parallel: 'yes'
@@ -16,12 +17,12 @@ ansible_verbose: "-v"
 ansible_ssh_private_key_file: 'provisioning/files/insecure_private_key'
 
 virtualbox:
-  vagrant_box_url: "https://app.vagrantup.com/generic/boxes/debian11/versions/4.2.16/providers/virtualbox.box"
+  vagrant_box_url: "https://app.vagrantup.com/debian/boxes/bookworm64/versions/12.20230723.1/providers/virtualbox.box"
   private_network_ip_prefix: 192.168.56
   ip_last_octet: 130
 
 libvirt:
-  vagrant_box_url: "https://app.vagrantup.com/generic/boxes/debian11/versions/4.2.16/providers/libvirt.box"
+  vagrant_box_url: "https://app.vagrantup.com/debian/boxes/bookworm64/versions/12.20230723.1/providers/libvirt.box"
   private_network_ip_prefix: 10.0.0
   ip_last_octet: 110
 

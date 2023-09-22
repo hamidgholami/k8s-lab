@@ -3,7 +3,7 @@
   gather_facts: yes
   become: yes
   vars:
-    k3s_version: v1.26.4-rc1+k3s1
+    k3s_version: v1.28.2+k3s1
     ansible_user: vagrant # or 'ec2-user' for aws ec2 instances
     ansible_become: true
     systemd_dir: /etc/systemd/system

@@ -11,6 +11,7 @@ if vagrant_variables['debug'] then
 end
 ############################ LOADING VAGRANT VARIABLES #################################
 BOX                       = vagrant_variables['vagrant_box']
+BOX_VERSION               = vagrant_variables['vagrant_box_version']
 CPU                       = vagrant_variables['cpu']
 MEMORY                    = vagrant_variables['memory']
 SHELL_PROVISION_FILE_PATH = vagrant_variables['vagrant_shell_provision_file_path']
@@ -47,6 +48,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       machine.vm.provision "shell", path: SHELL_PROVISION_FILE_PATH
 
       if PROVIDER == 'virtualbox' then
+        machine.vm.box_version = BOX_VERSION
         machine.vm.box_url = VIRTUALBOX_BOX_URL
         machine.vm.network :private_network, :ip => "#{VIRTUALBOX_IP_PREFIX}.#{VIRTUALBOX_IP_LAST_OCTET + machine_id}"
         machine.vm.provider "virtualbox" do |vb|
@@ -57,6 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       end
 
       if PROVIDER == 'libvirt' then
+        machine.vm.box_version = BOX_VERSION
         machine.vm.box_url = LIBVIRT_BOX_URL
         machine.vm.network :private_network, :ip => "#{LIBVIRT_IP_PREFIX}.#{LIBVIRT_IP_LAST_OCTET + machine_id}",
                            :libvirt__forward_mode => "route",
